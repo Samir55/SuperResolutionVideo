@@ -23,18 +23,19 @@ def read_training(train_path, file_names):
 
         # Read image in gray scale.
         org_img = cv.imread(train_path + '/' + filename)
+        converted_img = cv.cvtColor(org_img, cv.COLOR_BGR2YCrCb)
 
         # Scale down to hd (ground truth).
-        y = cv.resize(org_img, (1280, 720))
+        y = cv.resize(converted_img, (1280, 720))
 
         # Scale down to hd (input).
-        x = cv.resize(org_img, (640, 360))
+        x = cv.resize(converted_img, (640, 360))
         x = cv.resize(x, (1280, 720), interpolation=cv.INTER_CUBIC)
 
-        train_x.append(x)
-        train_y.append(y)
+        train_x.append(np.asarray(x[:, :, 0]).reshape(720, 1280, 1))
+        train_y.append(np.asarray(y[:, :, 0]).reshape(720, 1280, 1))
 
     train_x = np.asarray(train_x)
     train_y = np.asarray(train_y)
 
-    return (train_x, train_y)
+    return train_x, train_y
