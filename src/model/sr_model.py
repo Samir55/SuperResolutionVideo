@@ -14,7 +14,7 @@ import time
 
 train_path = "/home/ahmedsamir/SuperResolutionVideo/data/raw/"
 model_test_path = "/home/ahmedsamir/SuperResolutionVideo/models/"
-NUM_EPOCHES = 10
+NUM_EPOCHES = 20
 
 
 def sr_loss():
@@ -34,7 +34,7 @@ def PSNRLoss(y_true, y_pred):
 
 
 def sr_model():
-    input_shape = [None, None, 1]
+    input_shape = [None, None, 3]
 
     model = Sequential()
 
@@ -99,7 +99,7 @@ def predict(img_path, model_file_name):
     converted_img[:, :, 0] = y[0, :, :, 0]
     result_img = cv.cvtColor(converted_img, cv.COLOR_YCrCb2BGR)
 
-    cv.imshow("ORG", org_img)
+    cv.imshow("ORG", up_scaled_img)
     cv.waitKey(0)
 
     cv.imshow("SR", result_img)
@@ -107,6 +107,6 @@ def predict(img_path, model_file_name):
 
 
 # delete_bad_images(train_path)
-# train()
+train()
 predict("/home/ahmedsamir/SuperResolutionVideo/test/c.jpg", "sr_model")
 # predict("/home/ahmedsamir/SuperResolutionVideo/data/raw/1.jpg")
