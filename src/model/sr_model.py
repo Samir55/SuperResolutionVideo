@@ -88,7 +88,7 @@ def predict(img_path, model_file_name):
     down_scaled_img = cv.resize(org_img, (w // 2, h // 2), interpolation=cv.INTER_CUBIC)
     h, w, c = down_scaled_img.shape
 
-    up_scaled_img = cv.resize(org_img, (w * 2, h * 2), interpolation=cv.INTER_CUBIC)
+    up_scaled_img = cv.resize(down_scaled_img, (w * 2, h * 2), interpolation=cv.INTER_CUBIC)
     converted_img = cv.cvtColor(up_scaled_img, cv.COLOR_BGR2YCrCb)
 
     x = np.asarray(np.asarray(converted_img[:, :, 0]).reshape(h * 2, w * 2, 1))
