@@ -14,6 +14,7 @@ import time
 
 train_path = "/home/ahmedsamir/SuperResolutionVideo/data/raw/"
 model_test_path = "/home/ahmedsamir/SuperResolutionVideo/models/"
+NUM_EPOCHES = 10
 
 
 def sr_loss():
@@ -33,7 +34,7 @@ def PSNRLoss(y_true, y_pred):
 
 
 def sr_model():
-    input_shape = [32, 32, 1]
+    input_shape = [None, None, 1]
 
     model = Sequential()
 
@@ -71,7 +72,7 @@ def train(load_from_checkpoint=False, checkpoint=30):
 
     train_x, train_y = read_training(train_path, train_images)
 
-    model.fit(train_x, train_y, batch_size=32, epochs=50, callbacks=callbacks, verbose=1)
+    model.fit(train_x, train_y, batch_size=32, epochs=NUM_EPOCHES, callbacks=callbacks, verbose=1)
 
     model.save("/home/ahmedsamir/SuperResolutionVideo/models/sr_model" + ".h5")
 
@@ -106,6 +107,6 @@ def predict(img_path, model_file_name):
 
 
 # delete_bad_images(train_path)
-train()
-# predict("/home/ahmedsamir/SuperResolutionVideo/test/c.jpg", "sr_model")
+# train()
+predict("/home/ahmedsamir/SuperResolutionVideo/test/c.jpg", "sr_model")
 # predict("/home/ahmedsamir/SuperResolutionVideo/data/raw/1.jpg")
