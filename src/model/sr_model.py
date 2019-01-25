@@ -1,5 +1,6 @@
 # import the necessary packages
 import keras
+from keras.callbacks import ModelCheckpoint
 from keras.models import Sequential
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.layers.core import Activation
@@ -7,7 +8,7 @@ from keras.optimizers import Adam
 from keras.utils import plot_model
 from keras import backend as K
 
-from src.data.data_loader import read_training, get_train_file_names, UPCONVDataGenerator
+from src.data.data_loader import read_training, get_train_file_names, UPCONVDataGenerator, read_training2
 import cv2 as cv
 import numpy as np
 import time
@@ -15,7 +16,6 @@ import time
 train_path = "/home/ahmedsamir/SuperResolutionVideo/data/raw/"
 upconv_train_path = "/home/ahmedsamir/Downloads/ukbench/ukbench/full/"
 model_test_path = "/home/ahmedsamir/SuperResolutionVideo/models/"
-NUM_EPOCHS = 20
 
 
 def sr_loss():
@@ -35,6 +35,8 @@ def PSNRLoss(y_true, y_pred):
 
 
 class SRCNN:
+    NUM_EPOCHS = 5000
+
     def sr_model(self):
         input_shape = [None, None, 1]
 
@@ -67,13 +69,16 @@ class SRCNN:
         if load_from_checkpoint:
             model.load_weights("/home/ahmedsamir/SuperResolutionVideo/models/sr_model" + str(checkpoint) + ".h5")
 
-        callbacks = []
+        checkpoint = ModelCheckpoint("SRCNN_check.h5", monitor='train_loss', verbose=1, save_best_only=True,
+                                     save_weights_only=False, mode='min')
+
+        callbacks = [checkpoint]
 
         train_images = get_train_file_names(train_path)
 
-        train_x, train_y = read_training(train_path, train_images)
+        train_x, train_y = read_training2(train_path, train_images)
 
-        model.fit(train_x, train_y, batch_size=32, epochs=NUM_EPOCHS, callbacks=callbacks, verbose=1)
+        model.fit(train_x, train_y, batch_size=128, epochs=SRCNN.NUM_EPOCHS, callbacks=callbacks, verbose=1)
 
         model.save("/home/ahmedsamir/SuperResolutionVideo/models/sr_model" + ".h5")
 
@@ -81,28 +86,31 @@ class SRCNN:
         model = self.sr_model()
         model.load_weights(model_test_path + model_file_name + ".h5")
 
-        # Read image in gray scale.
-        org_img = cv.imread(img_path)
-        h, w, c = org_img.shape
+        img = cv.imread(img_path, cv.IMREAD_COLOR)
+        img = cv.cvtColor(img, cv.COLOR_BGR2YCrCb)
+        shape = img.shape
 
-        down_scaled_img = cv.resize(org_img, (w // 2, h // 2), interpolation=cv.INTER_CUBIC)
-        h, w, c = down_scaled_img.shape
+        y_img = cv.resize(img[:, :, 0], (shape[1] // 2, shape[0] // 2), cv.INTER_CUBIC)
+        y_img = cv.resize(y_img, (shape[1], shape[0]), cv.INTER_CUBIC)
+        img[:, :, 0] = y_img
 
-        up_scaled_img = cv.resize(down_scaled_img, (w * 2, h * 2), interpolation=cv.INTER_CUBIC)
-        converted_img = cv.cvtColor(up_scaled_img, cv.COLOR_BGR2YCrCb)
+        img = cv.cvtColor(img, cv.COLOR_YCrCb2BGR)
 
-        x = np.asarray(np.asarray(converted_img[:, :, 0]).reshape(h * 2, w * 2, 1))
-        x = x.reshape((1, x.shape[0], x.shape[1], x.shape[2]))
-
-        y = model.predict(x)
-
-        converted_img[:, :, 0] = y[0, :, :, 0]
-        result_img = cv.cvtColor(converted_img, cv.COLOR_YCrCb2BGR)
-
-        cv.imshow("ORG", up_scaled_img)
+        cv.imshow("UP_SCALED", img[:,:,0])
         cv.waitKey(0)
 
-        cv.imshow("SR", result_img)
+        x = np.zeros((1, img.shape[0], img.shape[1], 1), dtype=float)
+        x[0, :, :, 0] = y_img.astype(float) / 255.
+
+        y = model.predict(x, batch_size=1) * 255.
+        y[y[:] > 255] = 255
+        y[y[:] < 0] = 0
+        y = y.astype(np.uint8)
+        img = cv.cvtColor(img, cv.COLOR_BGR2YCrCb)
+        img[:, :, 0] = y[0, :, :, 0]
+        img = cv.cvtColor(img, cv.COLOR_YCrCb2BGR)
+
+        cv.imshow("SR", img[:,:,0])
         cv.waitKey(0)
 
 
@@ -187,9 +195,9 @@ class UPCONV:
 
 
 # SRCNN
-# SRCNN().train()
-# SRCNN().predict("/home/ahmedsamir/SuperResolutionVideo/test/c.jpg", "sr_model")
+SRCNN().train()
+# SRCNN().predict("/home/ahmedsamir/SuperResolutionVideo/test/d.jpg", "sr_model")
 
 # UPCONV
-UPCONV().train()
+# UPCONV().train()
 # UPCONV().predict("/home/ahmedsamir/SuperResolutionVideo/test/c.jpg", "upconv_model")
