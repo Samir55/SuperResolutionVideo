@@ -8,7 +8,7 @@ from keras.optimizers import Adam
 from keras.utils import plot_model
 from keras import backend as K
 
-from src.data.data_loader import read_training, get_train_file_names, UPCONVDataGenerator, read_training2
+from src.data.data_loader import read_training, get_train_file_names, UPCONVDataGenerator, read_training_upconv
 import cv2 as cv
 import numpy as np
 import time
@@ -35,7 +35,7 @@ def PSNRLoss(y_true, y_pred):
 
 
 class SRCNN:
-    NUM_EPOCHS = 5000
+    NUM_EPOCHS = 1500
 
     def sr_model(self):
         input_shape = [None, None, 1]
@@ -76,7 +76,7 @@ class SRCNN:
 
         train_images = get_train_file_names(train_path)
 
-        train_x, train_y = read_training2(train_path, train_images)
+        train_x, train_y = read_training(train_path, train_images)
 
         model.fit(train_x, train_y, batch_size=128, epochs=SRCNN.NUM_EPOCHS, callbacks=callbacks, verbose=1)
 
@@ -136,10 +136,8 @@ class UPCONV:
         model.add(Conv2D(filters=128, kernel_size=(3, 3), padding="same"))
         model.add(keras.layers.LeakyReLU(alpha=0.1))
 
-        model.add(Conv2D(filters=256, kernel_size=(3, 3), padding="same"))
+        model.add(Conv2D(filters=3, kernel_size=(3, 3), padding="same"))
         model.add(keras.layers.LeakyReLU(alpha=0.1))
-
-        model.add(Conv2DTranspose(UPCONV.NUM_CHANNELS, kernel_size=(3, 3), strides=2, padding='same', use_bias=False))
 
         # Print model layers for debugging.
         print(model.summary())
@@ -162,7 +160,7 @@ class UPCONV:
         for e in range(UPCONV.NUM_EPOCHS):
             t = time.clock()
             for i in range(len(train_images) // UPCONV.BATCH_SIZE):
-                train_x, train_y = read_training(upconv_train_path,
+                train_x, train_y = read_training_upconv(upconv_train_path,
                                                  train_images[i * UPCONV.BATCH_SIZE: (i + 1) * UPCONV.BATCH_SIZE])
                 model.fit(train_x, train_y, batch_size=32, epochs=1)
             print("ONE EPOCH time is " + str(time.clock() - t))
@@ -172,16 +170,14 @@ class UPCONV:
         model = self.upconv_model()
         model.load_weights(model_test_path + model_file_name + ".h5")
 
-        # Read image in gray scale.
         org_img = cv.imread(img_path)
         h, w, c = org_img.shape
 
         down_scaled_img = cv.resize(org_img, (w // 2, h // 2), interpolation=cv.INTER_CUBIC)
-        x = np.asarray(np.asarray(down_scaled_img))
-        x = x.reshape((1, x.shape[0], x.shape[1], x.shape[2]))
-        h, w, c = down_scaled_img.shape
+        up_scaled_img = cv.resize(org_img, (w , h), interpolation=cv.INTER_CUBIC)
 
-        up_scaled_img = cv.resize(down_scaled_img, (w * 2, h * 2), interpolation=cv.INTER_CUBIC)
+        x = np.asarray(np.asarray(up_scaled_img))
+        x = x.reshape((1, x.shape[0], x.shape[1], x.shape[2]))
 
         y = model.predict(x)
 
@@ -195,9 +191,9 @@ class UPCONV:
 
 
 # SRCNN
-SRCNN().train()
-# SRCNN().predict("/home/ahmedsamir/SuperResolutionVideo/test/d.jpg", "sr_model")
+# SRCNN().train()
+# SRCNN().predict1("/home/ahmedsamir/SuperResolutionVideo/test/d.jpg", "sr_model")
 
 # UPCONV
-# UPCONV().train()
+UPCONV().train()
 # UPCONV().predict("/home/ahmedsamir/SuperResolutionVideo/test/c.jpg", "upconv_model")

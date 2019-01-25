@@ -33,46 +33,6 @@ def get_train_file_names(train_path):
 
 
 def read_training(train_path, file_names):
-    train_x = []
-    train_y = []
-
-    for filename in file_names:
-        # Ignore git ignore file.
-        if filename[0] == '.':
-            continue
-
-        # Read image in gray scale.
-        org_img = cv.imread(train_path + '/' + filename)
-        converted_img = cv.cvtColor(org_img, cv.COLOR_BGR2YCrCb)
-        converted_img = org_img / 255.
-
-        sub_image_size = 32
-        stride = 14
-        for i in range(0, org_img.shape[0] - sub_image_size, stride):
-            if i + sub_image_size > org_img.shape[0]:
-                break
-
-            for j in range(0, org_img.shape[1] - sub_image_size, stride):
-                if j + sub_image_size > org_img.shape[1]:
-                    break
-
-                csub_image = converted_img[i:i + sub_image_size, j:j + sub_image_size]
-                h, w, c = csub_image.shape
-
-                # Scale down to (input).
-                x = cv.resize(csub_image, (h // 2, w // 2))
-                x = cv.resize(x, (h, w), interpolation=cv.INTER_CUBIC)
-
-                train_x.append(np.asarray(x[:, :, 0]).reshape(h, w, 1))
-                train_y.append(np.asarray(csub_image[:, :, 0]).reshape(h, w, 1))
-
-    train_x = np.asarray(train_x)
-    train_y = np.asarray(train_y)
-
-    return train_x, train_y
-
-
-def read_training2(train_path, file_names):
     data = []
     label = []
 
@@ -120,6 +80,58 @@ def read_training2(train_path, file_names):
 
                 data.append(np.asarray(lr[0, :, :]).reshape(PATCH_SIZE, PATCH_SIZE, 1))
                 label.append(np.asarray(hr[0, :, :]).reshape(LABEL_SIZE, LABEL_SIZE, 1))
+
+    data = np.asarray(data)
+    label = np.asarray(label)
+    return data, label
+
+
+def read_training_upconv(train_path, file_names):
+    data = []
+    label = []
+
+    for filename in file_names:
+        # Ignore git ignore file.
+        if filename[0] == '.' or filename[-3:] != "jpg":
+            continue
+
+        # Read image in gray scale.
+        hr_img = cv.imread(train_path + filename)
+        shape = hr_img.shape
+
+        lr_img = cv.resize(hr_img, (shape[1] // 2, shape[0] // 2))
+        lr_img = cv.resize(hr_img, (shape[1], shape[0]))
+
+        BLOCK_STEP = 96
+        BLOCK_SIZE = 96
+        PATCH_SIZE = 96
+        LABEL_SIZE = 96
+
+        width_limit = (shape[0] - (BLOCK_SIZE - BLOCK_STEP) * 2) // BLOCK_STEP
+        height_limit = (shape[1] - (BLOCK_SIZE - BLOCK_STEP) * 2) // BLOCK_STEP
+
+        for w in range(width_limit):
+            for h in range(height_limit):
+                x = w * BLOCK_STEP
+                y = h * BLOCK_STEP
+
+                hr_patch = hr_img[x: x + BLOCK_SIZE, y:y + BLOCK_SIZE]
+                lr_patch = lr_img[x: x + BLOCK_SIZE, y:y + BLOCK_SIZE]
+
+                if lr_patch.shape != (PATCH_SIZE, PATCH_SIZE, 3) or hr_patch.shape != (BLOCK_SIZE, BLOCK_SIZE,3):
+                    continue
+
+                lr_patch = lr_patch / 255.
+                hr_patch = hr_patch / 255.
+
+                lr = np.zeros((1, PATCH_SIZE, PATCH_SIZE, 3), dtype=np.double)
+                hr = np.zeros((1, LABEL_SIZE, LABEL_SIZE, 3), dtype=np.double)
+
+                lr[0, :, :] = lr_patch
+                hr[0, :, :] = hr_patch
+
+                data.append(np.asarray(lr[0, :, :]).reshape(PATCH_SIZE, PATCH_SIZE, 3))
+                label.append(np.asarray(hr[0, :, :]).reshape(LABEL_SIZE, LABEL_SIZE, 3))
 
     data = np.asarray(data)
     label = np.asarray(label)
