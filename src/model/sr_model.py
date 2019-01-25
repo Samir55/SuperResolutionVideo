@@ -96,7 +96,7 @@ class SRCNN:
 
         img = cv.cvtColor(img, cv.COLOR_YCrCb2BGR)
 
-        cv.imshow("UP_SCALED", img[:, :, 0])
+        cv.imshow("UP_SCALED", img)
         cv.waitKey(0)
 
         x = np.zeros((1, img.shape[0], img.shape[1], 1), dtype=float)
@@ -110,7 +110,7 @@ class SRCNN:
         img[:, :, 0] = y[0, :, :, 0]
         img = cv.cvtColor(img, cv.COLOR_YCrCb2BGR)
 
-        cv.imshow("SR", img[:, :, 0])
+        cv.imshow("SR", img)
         cv.waitKey(0)
 
 
@@ -196,8 +196,8 @@ class UPCONV:
 
 # SRCNN
 # SRCNN().train()
-# SRCNN().predict1("/home/ahmedsamir/SuperResolutionVideo/test/d.jpg", "sr_model")
+SRCNN().predict("/home/ahmedsamir/SuperResolutionVideo/test/c.jpg", "sr_model")
 
 # UPCONV
-UPCONV().train()
+# UPCONV().train()
 # UPCONV().predict("/home/ahmedsamir/SuperResolutionVideo/test/c.jpg", "upconv_model")
