@@ -100,11 +100,11 @@ def read_training_upconv(train_path, file_names):
         shape = hr_img.shape
 
         lr_img = cv.resize(hr_img, (shape[1] // 2, shape[0] // 2))
-        lr_img = cv.resize(hr_img, (shape[1], shape[0]))
+        lr_img = cv.resize(lr_img, (shape[1], shape[0]))
 
         BLOCK_STEP = 96
         BLOCK_SIZE = 96
-        PATCH_SIZE = 96
+        PATCH_SIZE = 48
         LABEL_SIZE = 96
 
         width_limit = (shape[0] - (BLOCK_SIZE - BLOCK_STEP) * 2) // BLOCK_STEP
@@ -118,10 +118,10 @@ def read_training_upconv(train_path, file_names):
                 hr_patch = hr_img[x: x + BLOCK_SIZE, y:y + BLOCK_SIZE]
                 lr_patch = lr_img[x: x + BLOCK_SIZE, y:y + BLOCK_SIZE]
 
-                if lr_patch.shape != (PATCH_SIZE, PATCH_SIZE, 3) or hr_patch.shape != (BLOCK_SIZE, BLOCK_SIZE,3):
+                if lr_patch.shape != (BLOCK_SIZE, BLOCK_SIZE, 3) or hr_patch.shape != (BLOCK_SIZE, BLOCK_SIZE, 3):
                     continue
 
-                lr_patch = lr_patch / 255.
+                lr_patch = cv.resize(lr_patch, (PATCH_SIZE, PATCH_SIZE)) / 255.
                 hr_patch = hr_patch / 255.
 
                 lr = np.zeros((1, PATCH_SIZE, PATCH_SIZE, 3), dtype=np.double)

@@ -96,7 +96,7 @@ class SRCNN:
 
         img = cv.cvtColor(img, cv.COLOR_YCrCb2BGR)
 
-        cv.imshow("UP_SCALED", img[:,:,0])
+        cv.imshow("UP_SCALED", img[:, :, 0])
         cv.waitKey(0)
 
         x = np.zeros((1, img.shape[0], img.shape[1], 1), dtype=float)
@@ -110,13 +110,13 @@ class SRCNN:
         img[:, :, 0] = y[0, :, :, 0]
         img = cv.cvtColor(img, cv.COLOR_YCrCb2BGR)
 
-        cv.imshow("SR", img[:,:,0])
+        cv.imshow("SR", img[:, :, 0])
         cv.waitKey(0)
 
 
 class UPCONV:
     NUM_CHANNELS = 3
-    NUM_EPOCHS = 5
+    NUM_EPOCHS = 12
     BATCH_SIZE = 32
 
     def upconv_model(self):
@@ -136,8 +136,10 @@ class UPCONV:
         model.add(Conv2D(filters=128, kernel_size=(3, 3), padding="same"))
         model.add(keras.layers.LeakyReLU(alpha=0.1))
 
-        model.add(Conv2D(filters=3, kernel_size=(3, 3), padding="same"))
+        model.add(Conv2D(filters=256, kernel_size=(3, 3), padding="same"))
         model.add(keras.layers.LeakyReLU(alpha=0.1))
+
+        model.add(Conv2DTranspose(UPCONV.NUM_CHANNELS, kernel_size=(3, 3), strides=2, padding='same', use_bias=False))
 
         # Print model layers for debugging.
         print(model.summary())
@@ -161,7 +163,8 @@ class UPCONV:
             t = time.clock()
             for i in range(len(train_images) // UPCONV.BATCH_SIZE):
                 train_x, train_y = read_training_upconv(upconv_train_path,
-                                                 train_images[i * UPCONV.BATCH_SIZE: (i + 1) * UPCONV.BATCH_SIZE])
+                                                        train_images[
+                                                        i * UPCONV.BATCH_SIZE: (i + 1) * UPCONV.BATCH_SIZE])
                 model.fit(train_x, train_y, batch_size=32, epochs=1)
             print("ONE EPOCH time is " + str(time.clock() - t))
             model.save("/home/ahmedsamir/SuperResolutionVideo/models/upconv_model" + ".h5")
@@ -174,14 +177,15 @@ class UPCONV:
         h, w, c = org_img.shape
 
         down_scaled_img = cv.resize(org_img, (w // 2, h // 2), interpolation=cv.INTER_CUBIC)
-        up_scaled_img = cv.resize(org_img, (w , h), interpolation=cv.INTER_CUBIC)
+        up_scaled_img = cv.resize(org_img, (w, h), interpolation=cv.INTER_CUBIC)
 
         x = np.asarray(np.asarray(up_scaled_img))
         x = x.reshape((1, x.shape[0], x.shape[1], x.shape[2]))
 
         y = model.predict(x)
 
-        result_img = y[0, :, :, :]
+        result_img = y[0, :, :, :] * 255.
+        result_img = result_img.astype(np.uint8)
 
         cv.imshow("UP_SCALED", up_scaled_img)
         cv.waitKey(0)
