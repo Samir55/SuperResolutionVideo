@@ -1,0 +1,6 @@
+[submodule "external/tensorflow_cc"]
+	path = external/tensorflow_cc
+	url = https://github.com/Samir55/tensorflow_cc.git
+[submodule "external/ffmpeg"]
+	path = external/ffmpeg
+	url = https://github.com/Samir55/FFmpeg.git
