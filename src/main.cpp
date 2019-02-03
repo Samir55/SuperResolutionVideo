@@ -1,11 +1,21 @@
-#include "Model.h"
+#include <iostream>
+#include <string>
+#include <vector>
 #include <queue>
-#include <fstream>
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+//#include <opencv2/superres/superres.hpp>
+//#include <opencv2/superres/optical_flow.hpp>
+#include <opencv2/opencv_modules.hpp>
+
+#include "GraphInference/Inference.h"
+
+using namespace tensorflow_cc_inference;
 using namespace std;
-using namespace tensorflow;
 using namespace cv;
-
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -93,12 +103,11 @@ AVFrame mixFrames(AVFrame *frame1, AVFrame *frame2, int height, int width);
 
 void enhanceFrame(AVFrame *f);
 
-Model *model = new Model();
+//Model *model = new Model();
+auto srModel = Inference("../graphs/model.pb", "conv2d_1_input", "conv2d_3/BiasAdd");
 
 int main()
 {
-    model->initSession();
-
     string filename = "titanic.ts";
 
     FFmpegContext ffmpegContext1;
@@ -453,9 +462,10 @@ void enhanceFrame(AVFrame *f)
     vector<vector<ColorPoint>> image(f->height, vector<ColorPoint>(f->width));
     vector<vector<float>> x(f->height, vector<float>(f->width));
 
-    // Create input and output tensors.
-    model->createInputTensor(1, f->height, f->width, 1);
-    auto f_data = model->inputTensor.flat<float>().data();
+    // Create input tensor.
+    int64_t dims[] = {1, f->height, f->width, 1};
+    TF_Tensor *in = TF_AllocateTensor(TF_FLOAT, dims, 4, 1 * f->height * f->width * sizeof(float));
+    float *f_data = (float *) (TF_TensorData(in));
 
     // Fill the image
     for (int i = 0; i < f->height; ++i) {
@@ -472,21 +482,18 @@ void enhanceFrame(AVFrame *f)
         }
     }
 
-    // Feed forward x to the model.
-    model->feedForward();
-
-    auto sr_f_data = model->outputs[0].flat<float>().data();
-    Mat newImg = Mat(Size(f->height, f->width), CV_8U);
+    // Feed forward input tensor to the model.
+    TF_Tensor *out = srModel(in);
+    float *data2_ = (float *) (TF_TensorData(out));
 
     // Fill the frame again
     for (int i = 0; i < f->height; ++i) {
         for (int j = 0; j < f->width; ++j) {
-            int val = sr_f_data[i * f->width + j] * 255.0;
+
+            int val = static_cast<int>(data2_[i * f->width + j] * 255.0);
 
             val = val < 0 ? 0 : val;
             val = val > 255 ? 255 : val;
-
-            newImg.at<uchar>(i, j) = uchar(val);
 
             f->buf[0]->data[i * f->linesize[0] + j] = uchar(val);
             f->buf[1]->data[i / 2 * f->linesize[1] + j / 2] = image[i][j].u;

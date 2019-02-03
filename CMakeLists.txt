@@ -9,11 +9,13 @@ SET(CMAKE_CXX_STANDARD 11)
 #############################
 
 SET(HEADER_FILES
-        Model.h
+#        Model.h
         )
 
 SET(SOURCE_FILES
         src/main.cpp
+        src/GraphInference/Inference.cc
+        src/GraphInference/Inference.h
         src/${HEADER_FILES}
         )
 
@@ -27,9 +29,8 @@ FIND_PACKAGE(ZLIB REQUIRED)
 FIND_PACKAGE(BZip2 REQUIRED)
 FIND_PACKAGE(LibLZMA REQUIRED)
 
-# OpenCV and TensorFlow.
+# OpenCV.
 FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(TensorflowCC COMPONENTS SHARED)
 
 # CUDA.
 FIND_PACKAGE(CUDA)
@@ -39,6 +40,7 @@ FIND_PACKAGE(CUDA)
 #############################
 
 SET(FFMPEG_DIR ${PROJECT_SOURCE_DIR}/external/ffmpeg)
+SET(TENSORFLOW_DIR ${PROJECT_SOURCE_DIR}/external/)
 
 SET(FFMPEG_DIRS
         ${FFMPEG_DIR}
@@ -57,6 +59,7 @@ SET(INCLUDE_DIRS
         ${LIBLZMA_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
         ${FFMPEG_DIRS}
+        ${TENSORFLOW_DIR}
         )
 
 INCLUDE_DIRECTORIES(
@@ -77,12 +80,19 @@ SET(FFMPEG_LIBRARIES
         ${FFMPEG_DIR}/libswscale/libswscale.a
         )
 
+SET(TENSORFLOW_LIBRARIES
+        ${TENSORFLOW_DIR}/tensorflow/lib/libtensorflow.so
+        ${TENSORFLOW_DIR}/tensorflow/lib/libtensorflow_framework.so
+        )
+
 SET(DEPENDENCIES
+        -lpthread
         -lSDL2
         ${ZLIB_LIBRARIES}
         ${BZIP2_LIBRARIES}
         ${LIBLZMA_LIBRARIES}
         ${OpenCV_LIBS}
+        ${TENSORFLOW_LIBRARIES}
         )
 
 #############################
@@ -96,15 +106,6 @@ ADD_EXECUTABLE(SUPER_RES_VIDEO ${SOURCE_FILES})
 #############################
 
 TARGET_LINK_LIBRARIES(SUPER_RES_VIDEO ${FFMPEG_LIBRARIES} ${DEPENDENCIES})
-
-# Try the shared tensorflow library first.
-IF (TensorflowCC_Shared_FOUND)
-    TARGET_LINK_LIBRARIES(SUPER_RES_VIDEO TensorflowCC::Shared)
-ELSE ()
-    FIND_PACKAGE(TensorflowCC REQUIRED COMPONENTS Static)
-    TARGET_LINK_LIBRARIES(SUPER_RES_VIDEO TensorflowCC::Static)
-ENDIF ()
-
 
 IF (CUDA_FOUND)
     TARGET_LINK_LIBRARIES(SUPER_RES_VIDEO ${CUDA_LIBRARIES})
