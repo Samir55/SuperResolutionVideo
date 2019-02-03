@@ -1,0 +1,52 @@
+# Each job performs the following steps:
+# - install dependencies (cached across builds)
+# - build
+# - test
+
+language: generic
+dist: xenial
+
+before_install:
+  - chmod +x package/linux/travis-build.sh
+
+script:
+    - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then ./package/linux/travis-build.sh || travis_terminate 1; fi
+
+branches:
+  only:
+  - master
+  - travis
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.9
+    - g++-5
+    - gcc-4.9
+    - gcc-5
+    - zlib1g 
+    - zlib1g-dev
+    - bzip2
+    - liblzma-dev
+    - cmake
+    - nasm
+    - yasm
+
+env:
+  global:
+    - MAKEFLAGS="-j 2"
+    
+matrix:
+    include:
+        - os: linux
+          env:
+            - TARGET=main
+            - CACHE=$HOME/cache
+          cache:
+            apt: true
+            directories:
+              - $HOME
+              - $HOME/cache
+
