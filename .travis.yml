@@ -15,7 +15,6 @@ script:
 branches:
   only:
   - master
-  - another_tensorflow
 
 addons:
   apt:

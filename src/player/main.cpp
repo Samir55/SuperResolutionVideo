@@ -11,7 +11,7 @@
 //#include <opencv2/superres/optical_flow.hpp>
 #include <opencv2/opencv_modules.hpp>
 
-#include "GraphInference/Inference.h"
+#include "utils/inference.h"
 
 using namespace tensorflow_cc_inference;
 using namespace std;

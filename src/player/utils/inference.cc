@@ -28,7 +28,7 @@ SOFTWARE.
 #include <exception>
 #include <stdexcept>
 
-#include "Inference.h"
+#include "inference.h"
 using tensorflow_cc_inference::Inference;
 
 /**

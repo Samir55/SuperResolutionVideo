@@ -9,13 +9,13 @@ SET(CMAKE_CXX_STANDARD 11)
 #############################
 
 SET(HEADER_FILES
-#        Model.h
+        #        Model.h
         )
 
 SET(SOURCE_FILES
-        src/main.cpp
-        src/GraphInference/Inference.cc
-        src/GraphInference/Inference.h
+        src/player/main.cpp
+        src/player/utils/inference.cc
+        src/player/utils/inference.h
         src/${HEADER_FILES}
         )
 
