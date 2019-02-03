@@ -39,8 +39,8 @@ FIND_PACKAGE(CUDA)
 # Include Necessary Headers
 #############################
 
-SET(FFMPEG_DIR ${PROJECT_SOURCE_DIR}/external/ffmpeg)
-SET(TENSORFLOW_DIR ${PROJECT_SOURCE_DIR}/external/)
+SET(FFMPEG_DIR ${PROJECT_SOURCE_DIR}/src/libs/ffmpeg)
+SET(TENSORFLOW_DIR ${PROJECT_SOURCE_DIR}/src/libs/)
 
 SET(FFMPEG_DIRS
         ${FFMPEG_DIR}
