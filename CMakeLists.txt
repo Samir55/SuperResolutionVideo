@@ -9,14 +9,19 @@ SET(CMAKE_CXX_STANDARD 11)
 #############################
 
 SET(HEADER_FILES
-        #        Model.h
+        src/player/player.h
+        src/player/decoder.h
+        src/player/wrappers.h
+        src/player/viewer.h
+        src/player/utils/constants.h
+        src/player/utils/concurrent_priority_queue.h
+        src/player/utils/inference.h
         )
 
 SET(SOURCE_FILES
         src/player/main.cpp
         src/player/utils/inference.cc
-        src/player/utils/inference.h
-        src/${HEADER_FILES}
+        ${HEADER_FILES}
         )
 
 #############################
