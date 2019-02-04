@@ -1,4 +1,5 @@
 from skimage.transform import rescale, resize, downscale_local_mean
+
 from model import Model
 
 class SRCNN(Model):
