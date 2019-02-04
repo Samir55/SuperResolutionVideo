@@ -19,7 +19,7 @@ sudo apt-get install zlib1g zlib1g-dev bzip2 liblzma-dev cmake yasm python3-dev 
 hg clone https://hg.libsdl.org/SDL
 cd SDL 
 mkdir build && cd build
-../configure
+./configure
 make && sudo make install
 ```
 ### FFMPEG
@@ -27,7 +27,7 @@ Change directory to the repository SuperVideoResolution directory
 #### For CPU version
 ```Console 
 cd src/libs/ffmpeg
-./configure --extra-cflags="-fPIC"  --enable-nonfree --enable-libnpp --enable-shared  --enable-pic
+./configure --extra-cflags="-fPIC"  --enable-nonfree --enable-shared  --enable-pic
 make
 ```
 #### For CUDA compatible vesion
