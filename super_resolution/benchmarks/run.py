@@ -28,6 +28,8 @@ def run(testset_path):
     images = os.listdir(testset_path)
 
     for i in images:
+        if i[0] == ".": continue
+
         img = io.imread(testset_path + i)
         img_down_scaled = rescale(img, 0.5, anti_aliasing=True, multichannel=True)
 

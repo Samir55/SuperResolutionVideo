@@ -201,8 +201,8 @@ public:
 
         // Create input tensor.
         int64_t dims[] = {1, f->height, f->width, 1};
-        TF_Tensor *in = TF_AllocateTensor(TF_FLOAT, dims, 4, 1 * f->height * f->width * sizeof(float));
-        float *f_data = (float *) (TF_TensorData(in));
+        TF_Tensor* in = TF_AllocateTensor(TF_FLOAT, dims, 4, 1 * f->height * f->width * sizeof(float));
+        float* normData = (float*) (TF_TensorData(in));
 
         // Fill the image
         for (int i = 0; i < f->height; ++i) {
@@ -212,7 +212,7 @@ public:
                 uint8_t v = f->buf[2]->data[i / 2 * f->linesize[2] + j / 2];
 
                 // Fill the input tensor by the y channel normalized values.
-                f_data[i * f->width + j] = float(y / 255.0);
+                normData[i * f->width + j] = float(y / 255.0);
 
                 image[i][j] = ColorPoint(y, u, v);
                 x[i][j] = y;
@@ -220,14 +220,14 @@ public:
         }
 
         // Feed forward input tensor to the model.
-        TF_Tensor *out = model(in);
-        float *data2_ = (float *) (TF_TensorData(out));
+        TF_Tensor* out = model(in);
+        float* newVals = (float*) (TF_TensorData(out));
 
         // Fill the frame again
         for (int i = 0; i < f->height; ++i) {
             for (int j = 0; j < f->width; ++j) {
 
-                int val = static_cast<int>(data2_[i * f->width + j] * 255.0);
+                int val = static_cast<int>(newVals[i * f->width + j] * 255.0);
 
                 val = val < 0 ? 0 : val;
                 val = val > 255 ? 255 : val;
