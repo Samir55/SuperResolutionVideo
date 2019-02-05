@@ -1,13 +1,15 @@
-from skimage.transform import rescale, resize, downscale_local_mean
+import numpy as np
+import cv2 as cv
 
-from model import Model
+from enhancing_models.model import Model
+
 
 class Carn(Model):
 
-    def __init__(self, name):
-        super(Carn, self).__init__(name)
+    def __init__(self):
+        super().__init__("CARN")
 
     def enhance(self, img):
         # ToDo: enhance img
-        return rescale(img, 2.0, anti_aliasing=True, multichannel=True)
+        return cv.resize(img, None, fx=2.0, fy=2.0, interpolation=cv.INTER_CUBIC)
 

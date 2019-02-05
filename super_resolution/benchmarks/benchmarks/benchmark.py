@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
-class Benchmark:
-    __metaclass__ = ABCMeta
+
+class Benchmark(metaclass=ABCMeta):
 
     def __init__(self, name):
         self.name = name

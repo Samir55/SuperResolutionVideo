@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
-class Model:
-    __metaclass__ = ABCMeta
+
+class Model(metaclass=ABCMeta):
 
     def __init__(self, name):
         self.name = name
